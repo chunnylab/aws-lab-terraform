@@ -114,3 +114,21 @@ output "s3_sample_object_uri" {
   description = "S3 URI of the sample image asset."
   value       = "s3://${aws_s3_bucket.lab_assets.bucket}/${aws_s3_object.sample_image.key}"
 }
+
+# S3 Gateway VPC endpoint attached to the private route table so the private
+# instance can reach S3 without a NAT gateway or public internet route.
+resource "aws_vpc_endpoint" "s3_gateway" {
+  vpc_id            = module.bastion_pair.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [module.bastion_pair.private_route_table_id]
+
+  tags = {
+    Name = "saa-l11-vpce-s3"
+  }
+}
+
+output "s3_vpc_endpoint_id" {
+  description = "S3 Gateway VPC endpoint ID."
+  value       = aws_vpc_endpoint.s3_gateway.id
+}
