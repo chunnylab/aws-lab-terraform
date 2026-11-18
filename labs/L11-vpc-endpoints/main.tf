@@ -76,3 +76,41 @@ output "private_instance_private_ip" {
   description = "Private IPv4 address of saa-l11-ec2-private."
   value       = module.bastion_pair.private_instance_private_ip
 }
+
+# Private S3 bucket with a sample image asset for verifying S3 Gateway
+# endpoint access (`aws s3 ls` and `aws s3 cp`) from the private instance.
+resource "aws_s3_bucket" "lab_assets" {
+  bucket_prefix = "saa-l11-assets-"
+  force_destroy = true
+
+  tags = {
+    Name = "saa-l11-assets"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "lab_assets" {
+  bucket = aws_s3_bucket.lab_assets.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_object" "sample_image" {
+  bucket       = aws_s3_bucket.lab_assets.id
+  key          = "sample.svg"
+  source       = "${path.module}/assets/sample.svg"
+  etag         = filemd5("${path.module}/assets/sample.svg")
+  content_type = "image/svg+xml"
+}
+
+output "s3_bucket_name" {
+  description = "Private S3 bucket name for testing the S3 Gateway endpoint."
+  value       = aws_s3_bucket.lab_assets.bucket
+}
+
+output "s3_sample_object_uri" {
+  description = "S3 URI of the sample image asset."
+  value       = "s3://${aws_s3_bucket.lab_assets.bucket}/${aws_s3_object.sample_image.key}"
+}

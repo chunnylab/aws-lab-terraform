@@ -12,6 +12,7 @@ Terraform base for [lab L11](https://chunnylab.com/learn/aws-saa/L11-vpc-endpoin
 | IAM role | `saa-l11-role-private` as instance profile: S3, DynamoDB, CloudWatch Logs read-only |
 | Key pair and SGs | `saa-l11-key`; bastion SG (SSH from your IP and EC2 Instance Connect), private SG (SSH from the bastion SG) |
 | Instances | bastion (public IP) and private host, 2x t3.micro Amazon Linux 2023 |
+| S3 bucket | `saa-l11-assets-*` (private, `force_destroy = true`) with `sample.svg` for `aws s3 ls` / `aws s3 cp` verification |
 
 ## You create (the lab)
 
