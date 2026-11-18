@@ -11,7 +11,7 @@ variable "aws_profile" {
 }
 
 variable "public_key" {
-  description = "Your OpenSSH public key. Generate with ssh-keygen, then paste the contents of the .pub file."
+  description = "Your OpenSSH public key. Generate with ssh-keygen, then paste the contents of the .pub file. (run cat ~/.ssh/[your-public-key].pub)"
   type        = string
 
   validation {

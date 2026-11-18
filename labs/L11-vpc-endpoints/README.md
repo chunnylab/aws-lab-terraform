@@ -58,3 +58,9 @@ getent hosts dynamodb.ap-southeast-1.amazonaws.com          # expect a public IP
 ```
 
 The private subnet has no NAT, so success proves the traffic stays on the AWS network. To see the negative case, delete one endpoint in the console and rerun its command: it times out.
+
+aws s3 ls
+    aws dynamodb scan --table-name saa-l11-items
+    aws logs describe-log-groups --log-group-name-prefix /saa-l11
+    getent hosts logs.ap-southeast-1.amazonaws.com       # ควรได้ 10.0.2.x (IP ของ endpoint ENI)
+    getent hosts dynamodb.ap-southeast-1.amazonaws.com   # ควรได้ public IP ที่วิ่งผ่าน prefix-list route
