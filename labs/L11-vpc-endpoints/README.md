@@ -13,6 +13,9 @@ Terraform base for [lab L11](https://chunnylab.com/learn/aws-saa/L11-vpc-endpoin
 | Key pair and SGs | `saa-l11-key`; bastion SG (SSH from your IP and EC2 Instance Connect), private SG (SSH from the bastion SG) |
 | Instances | bastion (public IP) and private host, 2x t3.micro Amazon Linux 2023 |
 | S3 bucket | `saa-l11-assets-*` (private, `force_destroy = true`) with `sample.svg` for `aws s3 ls` / `aws s3 cp` verification |
+| VPC endpoints | S3 Gateway `saa-l11-vpce-s3`, DynamoDB Gateway `saa-l11-vpce-dynamodb`, CloudWatch Logs Interface `saa-l11-vpce-cw` (private DNS on, SG `saa-l11-sg-vpce` allows 443 from the private SG) |
+| DynamoDB | table `saa-l11-items` with one item (`id = hello`) |
+| CloudWatch Logs | log group `/saa-l11/lab`, stream `sample` |
 
 ## You create (the lab)
 
@@ -40,3 +43,18 @@ terraform destroy -var public_key="ssh-ed25519 AAAA dummy" -var admin_cidr="203.
 ```
 
 Console-created endpoints, security groups, and NAT gateways are outside Terraform state; removing them first avoids dependency errors when Terraform deletes the route tables, security groups, and VPC.
+
+## Test the endpoints
+
+From the bastion, SSH to the private host (use `ssh -A` or copy the key), then:
+
+```bash
+export AWS_DEFAULT_REGION=ap-southeast-1
+aws s3 ls                                                   # S3 Gateway
+aws dynamodb scan --table-name saa-l11-items                # DynamoDB Gateway
+aws logs describe-log-groups --log-group-name-prefix /saa-l11   # Logs Interface
+getent hosts logs.ap-southeast-1.amazonaws.com              # expect 10.0.2.x (endpoint ENI)
+getent hosts dynamodb.ap-southeast-1.amazonaws.com          # expect a public IP, routed via the prefix list
+```
+
+The private subnet has no NAT, so success proves the traffic stays on the AWS network. To see the negative case, delete one endpoint in the console and rerun its command: it times out.

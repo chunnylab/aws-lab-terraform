@@ -132,3 +132,110 @@ output "s3_vpc_endpoint_id" {
   description = "S3 Gateway VPC endpoint ID."
   value       = aws_vpc_endpoint.s3_gateway.id
 }
+
+# DynamoDB Gateway VPC endpoint on the private route table, same pattern as S3.
+resource "aws_vpc_endpoint" "dynamodb_gateway" {
+  vpc_id            = module.bastion_pair.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [module.bastion_pair.private_route_table_id]
+
+  tags = {
+    Name = "saa-l11-vpce-dynamodb"
+  }
+}
+
+# Small on-demand table with one item so the private host has something to
+# read through the DynamoDB endpoint (`aws dynamodb scan`).
+resource "aws_dynamodb_table" "lab_items" {
+  name         = "saa-l11-items"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  tags = {
+    Name = "saa-l11-items"
+  }
+}
+
+resource "aws_dynamodb_table_item" "sample" {
+  table_name = aws_dynamodb_table.lab_items.name
+  hash_key   = aws_dynamodb_table.lab_items.hash_key
+
+  item = jsonencode({
+    id      = { S = "hello" }
+    message = { S = "read through the DynamoDB Gateway endpoint" }
+  })
+}
+
+# CloudWatch Logs Interface endpoint (PrivateLink) in the private subnet.
+# Private DNS makes logs.<region>.amazonaws.com resolve to the endpoint ENI.
+resource "aws_security_group" "vpce_logs" {
+  name        = "saa-l11-sg-vpce"
+  description = "CloudWatch Logs Interface endpoint: HTTPS from the private host SG."
+  vpc_id      = module.bastion_pair.vpc_id
+
+  tags = {
+    Name = "saa-l11-sg-vpce"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "vpce_logs_https" {
+  security_group_id            = aws_security_group.vpce_logs.id
+  description                  = "HTTPS from the private host"
+  referenced_security_group_id = module.bastion_pair.sg_private_id
+  ip_protocol                  = "tcp"
+  from_port                    = 443
+  to_port                      = 443
+}
+
+resource "aws_vpc_endpoint" "logs_interface" {
+  vpc_id              = module.bastion_pair.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [module.bastion_pair.private_subnet_id]
+  security_group_ids  = [aws_security_group.vpce_logs.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "saa-l11-vpce-cw"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "lab" {
+  name              = "/saa-l11/lab"
+  retention_in_days = 1
+
+  tags = {
+    Name = "saa-l11-log-group"
+  }
+}
+
+resource "aws_cloudwatch_log_stream" "lab" {
+  name           = "sample"
+  log_group_name = aws_cloudwatch_log_group.lab.name
+}
+
+output "dynamodb_vpc_endpoint_id" {
+  description = "DynamoDB Gateway VPC endpoint ID."
+  value       = aws_vpc_endpoint.dynamodb_gateway.id
+}
+
+output "dynamodb_table_name" {
+  description = "DynamoDB table for testing the Gateway endpoint."
+  value       = aws_dynamodb_table.lab_items.name
+}
+
+output "logs_vpc_endpoint_id" {
+  description = "CloudWatch Logs Interface VPC endpoint ID."
+  value       = aws_vpc_endpoint.logs_interface.id
+}
+
+output "log_group_name" {
+  description = "Log group for testing the CloudWatch Logs Interface endpoint."
+  value       = aws_cloudwatch_log_group.lab.name
+}
