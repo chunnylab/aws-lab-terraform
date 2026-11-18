@@ -14,7 +14,7 @@ Terraform base for [lab L11](https://chunnylab.com/learn/aws-saa/L11-vpc-endpoin
 | Instances | bastion (public IP) and private host, 2x t3.micro Amazon Linux 2023 |
 | S3 bucket | `saa-l11-assets-*` (private, `force_destroy = true`) with `sample.svg` for `aws s3 ls` / `aws s3 cp` verification |
 | VPC endpoints | S3 Gateway `saa-l11-vpce-s3`, DynamoDB Gateway `saa-l11-vpce-dynamodb`, CloudWatch Logs Interface `saa-l11-vpce-cw` (private DNS on, SG `saa-l11-sg-vpce` allows 443 from the private SG) |
-| DynamoDB | table `saa-l11-items` with one item (`id = hello`) |
+| DynamoDB | table `saa-l11-items` with one item (`id = hello from hangyao with dynamoDB`) |
 | CloudWatch Logs | log group `/saa-l11/lab`, stream `sample` |
 
 ## You create (the lab)

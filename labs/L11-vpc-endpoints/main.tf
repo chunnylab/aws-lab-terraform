@@ -167,7 +167,7 @@ resource "aws_dynamodb_table_item" "sample" {
   hash_key   = aws_dynamodb_table.lab_items.hash_key
 
   item = jsonencode({
-    id      = { S = "hello" }
+    id      = { S = "hello from hangyao with dynamoDB" }
     message = { S = "read through the DynamoDB Gateway endpoint" }
   })
 }
