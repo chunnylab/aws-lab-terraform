@@ -43,6 +43,11 @@ output "private_instance_id" {
   value       = module.bastion_pair.private_instance_id
 }
 
+output "private_instance_private_ip" {
+  description = "Private IPv4 address of saa-l12-ec2-private."
+  value       = module.bastion_pair.private_instance_private_ip
+}
+
 output "key_pair_name" {
   description = "Lab key pair name."
   value       = module.bastion_pair.key_pair_name

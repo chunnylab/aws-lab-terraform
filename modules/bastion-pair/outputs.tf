@@ -38,6 +38,11 @@ output "private_instance_id" {
   value       = aws_instance.private.id
 }
 
+output "private_instance_private_ip" {
+  description = "Private IPv4 address of the private host."
+  value       = aws_instance.private.private_ip
+}
+
 output "key_pair_name" {
   description = "Name of the lab key pair."
   value       = aws_key_pair.this.key_name

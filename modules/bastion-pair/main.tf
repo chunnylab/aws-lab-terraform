@@ -8,10 +8,10 @@ data "aws_ssm_parameter" "al2023" {
   name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
 
-data "aws_prefix_list" "eic" {
+data "aws_ec2_managed_prefix_list" "eic" {
   count = var.enable_eic_prefix ? 1 : 0
 
-  name = "com.amazonaws.${var.aws_region}.ec2-instance-connect.internet"
+  name = "com.amazonaws.${var.aws_region}.ec2-instance-connect"
 }
 
 resource "aws_vpc" "this" {
@@ -30,7 +30,7 @@ resource "aws_subnet" "public" {
   availability_zone = var.az
 
   tags = {
-    Name = "${var.name_prefix}-public-${var.az}"
+    Name = "${var.name_prefix}-sub-public"
   }
 }
 
@@ -40,7 +40,7 @@ resource "aws_subnet" "private" {
   availability_zone = var.az
 
   tags = {
-    Name = "${var.name_prefix}-private-${var.az}"
+    Name = "${var.name_prefix}-sub-private"
   }
 }
 
@@ -128,7 +128,7 @@ resource "aws_vpc_security_group_ingress_rule" "bastion_eic" {
 
   security_group_id = aws_security_group.bastion.id
   description       = "SSH from EC2 Instance Connect"
-  prefix_list_id    = data.aws_prefix_list.eic[0].id
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.eic[0].id
   from_port         = 22
   to_port           = 22
   ip_protocol       = "tcp"
@@ -233,7 +233,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion.id]
 
   tags = {
-    Name = "${var.name_prefix}-bastion"
+    Name = "${var.name_prefix}-ec2-bastion"
   }
 }
 
@@ -247,6 +247,6 @@ resource "aws_instance" "private" {
   iam_instance_profile = var.create_iam_role ? aws_iam_instance_profile.private_readonly[0].name : null
 
   tags = {
-    Name = "${var.name_prefix}-private"
+    Name = "${var.name_prefix}-ec2-private"
   }
 }

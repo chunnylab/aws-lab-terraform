@@ -27,6 +27,8 @@ grep -rqE 'region[[:space:]]*=[[:space:]]*"ap-' --include='main.tf' labs/ module
 # rule is the exam point and belongs to the learner.
 sed -n '/saa-l10-sg-host/,/^}/p' labs/L10-vpc-peering-private-web/main.tf | grep -q ingress \
   && fail "saa-l10-sg-host must not declare inbound rules"
+grep -A 6 'aws_vpc_security_group_ingress_rule' labs/L10-vpc-peering-private-web/main.tf | grep -q 'saa_l10_sg_host' \
+  && fail "saa-l10-sg-host must not have an aws_vpc_security_group_ingress_rule"
 
 # Security groups in Terraform drop the AWS default allow-all egress when no
 # egress is declared, which silently blocks the labs' core tasks. Every

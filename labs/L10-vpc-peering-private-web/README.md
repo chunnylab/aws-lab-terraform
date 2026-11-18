@@ -24,7 +24,7 @@ terraform init
 terraform apply
 ```
 
-The output prints both VPC IDs, both route table IDs, and the client public IP: the four values the lab's first task asks you to note.
+The output prints `host_private_ip` and `client_private_ip` (the two values the lab page's "Values to note" table asks for), along with both VPC IDs, both route table IDs, and the client public IP.
 
 ## Cost and teardown
 

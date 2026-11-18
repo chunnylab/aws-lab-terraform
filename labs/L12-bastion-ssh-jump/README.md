@@ -26,7 +26,7 @@ terraform apply \
   -var admin_cidr="$(curl -s https://checkip.amazonaws.com | tr -d '\n')/32"
 ```
 
-The apply output prints `bastion_public_ip`; the private IP shows in the console under the `saa-l12-private` instance.
+The apply output prints `bastion_public_ip` and `private_instance_private_ip` (the two values the lab page's "Values to note" table asks for). Because Terraform registers your existing public key as `saa-l12-key` instead of generating a `.pem` download in the console, pass your matching local private key (`~/.ssh/id_ed25519`) to `ssh -i` and `ssh-add` wherever the lab page writes `~/Downloads/saa-l12-key.pem`.
 
 ## Cost and teardown
 

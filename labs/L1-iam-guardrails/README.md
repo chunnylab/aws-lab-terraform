@@ -39,5 +39,7 @@ terraform destroy -var alert_email="you@example.com"
 Fresh Terraform state collides with the existing budget name. Import it instead of failing:
 
 ```bash
-terraform import aws_budgets_budget.zero_spend saa-l1-zero-spend
+terraform import -var alert_email="you@example.com" \
+  aws_budgets_budget.zero_spend \
+  "$(aws sts get-caller-identity --query Account --output text):saa-l1-zero-spend"
 ```

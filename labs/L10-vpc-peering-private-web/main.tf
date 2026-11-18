@@ -28,16 +28,16 @@ provider "aws" {
 # rule IS the lab.
 
 locals {
-  az_host   = "ap-southeast-1a"
-  az_client = "ap-southeast-1b"
+  az_host   = "${var.aws_region}a"
+  az_client = "${var.aws_region}b"
 }
 
 data "aws_ssm_parameter" "al2023" {
   name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
 
-data "aws_prefix_list" "eic" {
-  name = "com.amazonaws.${var.aws_region}.ec2-instance-connect.internet"
+data "aws_ec2_managed_prefix_list" "eic" {
+  name = "com.amazonaws.${var.aws_region}.ec2-instance-connect"
 }
 
 resource "aws_vpc" "host" {
@@ -141,7 +141,7 @@ resource "aws_security_group" "saa_l10_sg_client" {
 resource "aws_vpc_security_group_ingress_rule" "client_ssh_eic" {
   security_group_id = aws_security_group.saa_l10_sg_client.id
   description       = "SSH from EC2 Instance Connect"
-  prefix_list_id    = data.aws_prefix_list.eic.id
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.eic.id
   from_port         = 22
   to_port           = 22
   ip_protocol       = "tcp"
@@ -232,6 +232,16 @@ output "client_instance_public_ip" {
 }
 
 output "host_instance_id" {
-  description = "Private host instance. Read its private IPv4 address for the curl test."
+  description = "Private host instance ID."
   value       = aws_instance.host.id
+}
+
+output "host_private_ip" {
+  description = "Private IPv4 address of saa-l10-ec2-host, for the curl verify."
+  value       = aws_instance.host.private_ip
+}
+
+output "client_private_ip" {
+  description = "Private IPv4 address of saa-l10-ec2-client, for the port-80 inbound rule on saa-l10-sg-host."
+  value       = aws_instance.client.private_ip
 }

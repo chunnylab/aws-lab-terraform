@@ -42,6 +42,11 @@ output "vpc_id" {
   value       = module.bastion_pair.vpc_id
 }
 
+output "public_subnet_id" {
+  description = "Public subnet for the Stage 2 NAT gateway."
+  value       = module.bastion_pair.public_subnet_id
+}
+
 output "private_subnet_id" {
   description = "Private subnet for the Stage 2 Interface endpoint."
   value       = module.bastion_pair.private_subnet_id
@@ -65,4 +70,9 @@ output "bastion_public_ip" {
 output "private_instance_id" {
   description = "Private host instance ID."
   value       = module.bastion_pair.private_instance_id
+}
+
+output "private_instance_private_ip" {
+  description = "Private IPv4 address of saa-l11-ec2-private."
+  value       = module.bastion_pair.private_instance_private_ip
 }

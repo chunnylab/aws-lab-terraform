@@ -28,14 +28,14 @@ terraform apply \
   -var admin_cidr="$(curl -s https://checkip.amazonaws.com | tr -d '\n')/32"
 ```
 
-The output prints `private_route_table_id` and `private_subnet_id`, the two IDs Stage 2 asks for.
+The output prints `bastion_public_ip` and `private_instance_private_ip` (for the "Values to note" table), plus `public_subnet_id`, `private_subnet_id`, and `private_route_table_id` for Stage 2. Because Terraform registers your existing public key as `saa-l11-key` instead of generating a new `.pem` download in the console, use your matching local private key (`~/.ssh/id_ed25519`) wherever the lab page writes `saa-l11-key.pem`.
 
 ## Cost and teardown
 
-Stage 1 runs on 2x t3.micro plus one public IPv4. Stage 2 resources you create in the console add roughly $0.07 per hour (NAT gateway, Elastic IP while attached, Interface endpoint); the lab page shows how to stop after Stage 1. Delete your Stage 2 resources first, then:
+Stage 1 runs on 2x t3.micro plus one public IPv4. Stage 2 resources you create in the console add roughly $0.07 per hour (NAT gateway, Elastic IP while attached, Interface endpoint); the lab page shows how to stop after Stage 1. Delete your console-created resources first (`saa-l11-vpce-s3`, and if you ran Stage 2: `saa-l11-vpce-cw`, `saa-l11-sg-vpce`, `saa-l11-nat`, and its Elastic IP), then:
 
 ```bash
 terraform destroy -var public_key="ssh-ed25519 AAAA dummy" -var admin_cidr="203.0.113.5/32"
 ```
 
-Stage 2 resources are console-created, so Terraform does not know about them; removing them is part of the lab's cleanup steps.
+Console-created endpoints, security groups, and NAT gateways are outside Terraform state; removing them first avoids dependency errors when Terraform deletes the route tables, security groups, and VPC.
