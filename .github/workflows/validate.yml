@@ -1,0 +1,50 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: fmt, init, validate every module
+        run: |
+          set -euo pipefail
+          status=0
+          for d in modules/bastion-pair labs/*; do
+            echo "::group::$d"
+            ( cd "$d"
+              terraform init -backend=false -input=false >/dev/null
+              terraform fmt -check
+              terraform validate
+            ) || status=1
+            echo "::endgroup::"
+          done
+          exit $status
+
+      - name: design guards
+        run: |
+          set -euo pipefail
+          # L11 Stage 1 teaches through a timeout: the shared module must never
+          # add a NAT gateway or a second default route.
+          ! grep -rn "nat_gateway" modules/bastion-pair/
+          test "$(grep -c "0.0.0.0/0" modules/bastion-pair/main.tf)" -eq 1
+          # AMIs resolve through SSM, never a hard-coded id.
+          ! grep -rn "ami-" labs/ modules/
+          # Region defaults live in variables.tf only.
+          ! grep -rn 'region[[:space:]]*=[[:space:]]*"ap-' --include="main.tf" labs/ modules/
+          # The L10 host security group starts with zero inbound rules; the
+          # port-80 rule is the exam point and belongs to the learner.
+          ! sed -n '/saa-l10-sg-host/,/^}/p' labs/L10-vpc-peering-private-web/main.tf | grep -q ingress
+          # L1 budget alerts need a validated email variable.
+          grep -q "validation" labs/L1-iam-guardrails/variables.tf
