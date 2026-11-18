@@ -3,12 +3,12 @@
 Every lab directory under `labs/` is a standalone Terraform root module. Pick a lab, point Terraform at your AWS account with one of the two paths below, and apply.
 
 ```bash
-cd labs/L11-vpc-endpoints
+cd labs/L1-iam-guardrails
 terraform init
-terraform apply -var aws_profile=my-profile
+terraform apply -var alert_email="you@example.com" -var aws_profile=my-profile
 ```
 
-Variables every lab shares: `aws_region` (default `ap-southeast-1`, the region the lab pages pin) and `aws_profile` (default empty, meaning the default credential chain). Labs that need more variables say so in their README.
+Variables every lab shares: `aws_region` (default `ap-southeast-1`, the region the lab pages pin) and `aws_profile` (default empty, meaning the default credential chain). L1 applies with just `alert_email`; the other labs also need a public key and your IP, and each lab README opens with its exact apply command.
 
 ## Path 1: long-lived access keys
 

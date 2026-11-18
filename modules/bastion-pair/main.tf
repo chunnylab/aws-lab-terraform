@@ -143,6 +143,48 @@ resource "aws_vpc_security_group_ingress_rule" "private_from_bastion" {
   ip_protocol                  = "tcp"
 }
 
+# Terraform drops the AWS default allow-all egress when a security group
+# declares none, so outbound rules are explicit here. The bastion's whole job
+# is jumping to the private host.
+resource "aws_vpc_security_group_egress_rule" "bastion_ssh_private" {
+  security_group_id            = aws_security_group.bastion.id
+  description                  = "SSH to the private host"
+  referenced_security_group_id = aws_security_group.private.id
+  from_port                    = 22
+  to_port                      = 22
+  ip_protocol                  = "tcp"
+}
+
+# HTTPS out for the endpoint lessons. The Stage 1 timeout still happens: the
+# private route table has no route to carry these packets until the lab adds
+# one. DNS out covers private-DNS resolution for the Interface endpoint.
+resource "aws_vpc_security_group_egress_rule" "private_https" {
+  security_group_id = aws_security_group.private.id
+  description       = "HTTPS outbound (Gateway/Interface endpoint traffic)"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "private_dns_tcp" {
+  security_group_id = aws_security_group.private.id
+  description       = "DNS to the VPC resolver"
+  cidr_ipv4         = var.vpc_cidr
+  from_port         = 53
+  to_port           = 53
+  ip_protocol       = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "private_dns_udp" {
+  security_group_id = aws_security_group.private.id
+  description       = "DNS to the VPC resolver"
+  cidr_ipv4         = var.vpc_cidr
+  from_port         = 53
+  to_port           = 53
+  ip_protocol       = "udp"
+}
+
 resource "aws_iam_role" "private_readonly" {
   count = var.create_iam_role ? 1 : 0
 

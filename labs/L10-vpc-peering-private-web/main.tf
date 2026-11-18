@@ -147,6 +147,18 @@ resource "aws_vpc_security_group_ingress_rule" "client_ssh_eic" {
   ip_protocol       = "tcp"
 }
 
+# The client's curl to the host subnet. Without an explicit egress rule the
+# security group would deny all outbound and the lab's verify step could
+# never succeed.
+resource "aws_vpc_security_group_egress_rule" "client_http_host" {
+  security_group_id = aws_security_group.saa_l10_sg_client.id
+  description       = "HTTP to the host subnet"
+  cidr_ipv4         = "10.10.0.0/28"
+  from_port         = 80
+  to_port           = 80
+  ip_protocol       = "tcp"
+}
+
 resource "aws_instance" "host" {
   ami                    = nonsensitive(data.aws_ssm_parameter.al2023.value)
   instance_type          = "t3.micro"
