@@ -16,7 +16,7 @@ variable "public_key" {
 
   validation {
     condition     = can(regex("^ssh-(rsa|ed25519) ", var.public_key))
-    error_message = "public_key must be OpenSSH material starting with ssh-rsa or ssh-ed25519."
+    error_message = "public_key must be OpenSSH material starting with ssh-rsa or ssh-ed25519. run cat ~/.ssh/[your-public-key].pub"
   }
 }
 
