@@ -38,10 +38,7 @@ resource "aws_budgets_budget" "zero_spend" {
     threshold           = 100
     threshold_type      = "PERCENTAGE"
 
-    subscriber {
-      address           = var.alert_email
-      subscription_type = "EMAIL"
-    }
+    subscriber_email_addresses = [var.alert_email]
   }
 
   notification {
@@ -50,10 +47,7 @@ resource "aws_budgets_budget" "zero_spend" {
     threshold           = 100
     threshold_type      = "PERCENTAGE"
 
-    subscriber {
-      address           = var.alert_email
-      subscription_type = "EMAIL"
-    }
+    subscriber_email_addresses = [var.alert_email]
   }
 }
 
